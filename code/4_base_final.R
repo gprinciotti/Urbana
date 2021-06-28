@@ -18,8 +18,22 @@ bd_ssp <- read_rds("data/ssp/bd_ssp.RDS") %>% # corrigindo municípios com nomes
                          mun == "Santa Rosa do Viterbo" ~ "Santa Rosa de Viterbo",
                          mun == "Tarabaí" ~ "Tarabai",
                          mun == "Uchôa" ~ "Uchoa",
-                         TRUE ~ mun))
-
+                         TRUE ~ mun),
+         jan = as.numeric(gsub(jan, pattern = "[.]", replacement = "")),
+         fev = as.numeric(gsub(fev, pattern = "[.]", replacement = "")), 
+         mar = as.numeric(gsub(mar, pattern = "[.]", replacement = "")),
+         abr = as.numeric(gsub(abr, pattern = "[.]", replacement = "")),
+         mai = as.numeric(gsub(mai, pattern = "[.]", replacement = "")),
+         jun = as.numeric(gsub(jun, pattern = "[.]", replacement = "")),
+         jul = as.numeric(gsub(jul, pattern = "[.]", replacement = "")),
+         ago = as.numeric(gsub(ago, pattern = "[.]", replacement = "")),
+         set = as.numeric(gsub(set, pattern = "[.]", replacement = "")),
+         out = as.numeric(gsub(out, pattern = "[.]", replacement = "")),
+         nov = as.numeric(gsub(nov, pattern = "[.]", replacement = "")),
+         dez = as.numeric(gsub(dez, pattern = "[.]", replacement = "")),
+         total = jan+fev+mar+abr+mai+jun+jul+ago+set+out+nov+dez)
+         
+      
 bd_munic_19 <- read_rds("data/munic/bd_munic_19.RDS")
 
 bd_pop <- read_csv("data/auxiliares/pop.csv")
