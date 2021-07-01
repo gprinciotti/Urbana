@@ -53,3 +53,15 @@ bd_mun <- read_csv("data/auxiliares/mun.csv") %>%
 # bd_ssp <- read_csv("data/auxiliares/ssp.csv") %>%
 #   group_by(id_municipio, ano) %>%
 #   summarise_at(vars(-mes), sum)
+
+# FINBRA -----------------------------------------------------------------------
+load("data/auxiliares/sp_finbra.Rdata")
+
+bd_finbra <- sp %>% 
+  filter(conta == "Policiamento" & coluna == "Despesas Pagas") %>% 
+  select(id_municipio, ano, gastos_pol = valor) %>% 
+  mutate_at(vars(everything()), as.numeric)
+
+write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
+
+rm(sp)
