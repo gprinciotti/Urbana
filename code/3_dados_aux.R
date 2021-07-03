@@ -65,3 +65,26 @@ bd_finbra <- sp %>%
 write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
 
 rm(sp)
+
+
+# Bolsa Familia ----------------------------------------------------------------
+
+load("data/auxiliares/pbf_mds_04_19.RData")
+
+bd_bf <- pbf %>% 
+  filter(year >= 2010 &  mun_code >= 350000 & mun_code <= 359999) %>% 
+  mutate_at(vars(num_families, value), as.numeric)
+
+rm(pbf)
+
+load("data/auxiliares/mun_codes.RData")
+
+bd_bf <- bd_bf %>% 
+  rename(id_munic_6 = mun_code) %>% 
+  left_join(muns,by = "id_munic_6") %>% 
+  rename(id_municipio = id_munic_7) %>% 
+  dplyr::select(-id_munic_6, - estado_abrev)
+
+
+write_rds(bd_bf, "data/auxiliares/bd_bf.RDS")
+
