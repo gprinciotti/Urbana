@@ -8,7 +8,7 @@ gc()
 
 # CallLibraries
 source("code/_functions/CallLibraries.R")
-packs <- c("tidyverse", "magrittr", "basedosdados")
+packs <- c("tidyverse", "magrittr", "basedosdados", "rvest")
 CallLibraries(packs)
 
 # BASE DOS DADOS ---------------------------------------------------------------
@@ -66,25 +66,44 @@ write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
 
 rm(sp)
 
-
 # Bolsa Familia ----------------------------------------------------------------
+# load("data/auxiliares/pbf_mds_04_19.RData")
+# 
+# bd_bf <- pbf %>% 
+#   filter(year >= 2010 &  mun_code >= 350000 & mun_code <= 359999) %>% 
+#   mutate_at(vars(num_families, value), as.numeric)
+# 
+# rm(pbf)
+# 
+# load("data/auxiliares/mun_codes.RData")
+# 
+# bd_bf <- bd_bf %>% 
+#   rename(id_munic_6 = mun_code) %>% 
+#   left_join(muns,by = "id_munic_6") %>% 
+#   rename(id_municipio = id_munic_7) %>% 
+#   dplyr::select(-id_munic_6, - estado_abrev)
+# 
+# write_rds(bd_bf, "data/auxiliares/bd_bf.RDS")
 
-load("data/auxiliares/pbf_mds_04_19.RData")
+# Área dos municípios ----------------------------------------------------------
+bd_area <- read_html("https://pt.wikipedia.org/wiki/Lista_de_munic%C3%ADpios_de_S%C3%A3o_Paulo_por_%C3%A1rea") %>% # fonte
+  html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% 
+  html_table()
 
-bd_bf <- pbf %>% 
-  filter(year >= 2010 &  mun_code >= 350000 & mun_code <= 359999) %>% 
-  mutate_at(vars(num_families, value), as.numeric)
+bd_area <- bd_area[[1]] %>%
+  select(2, 3) %>% 
+  rename(mun = Município, area = 2) %>% 
+  mutate(area = gsub("\\,", "\\.", area) %>% gsub("\\s", "", .)%>% as.numeric(.)) %>% 
+  mutate(mun = case_when(mun == "Biritiba Mirim" ~ "Biritiba-Mirim",
+                         mun == "Boraceia" ~ "Boracéia",
+                         mun == "Florínea" ~ "Florínia",
+                         mun == "Itaoca" ~ "Itaóca",
+                         mun == "Luiz Antônio" ~ "Luís Antônio",
+                         mun == "Pompeia" ~ "Pompéia",
+                         mun == "Rubineia" ~ "Rubinéia",
+                         mun == "São João do Pau-d'Alho" ~ "São João do Pau d'Alho",
+                         mun == "São Luiz do Paraitinga" ~ "São Luís do Paraitinga",
+                         mun == "Taiuva" ~ "Taiúva",
+                         TRUE ~  mun))
 
-rm(pbf)
-
-load("data/auxiliares/mun_codes.RData")
-
-bd_bf <- bd_bf %>% 
-  rename(id_munic_6 = mun_code) %>% 
-  left_join(muns,by = "id_munic_6") %>% 
-  rename(id_municipio = id_munic_7) %>% 
-  dplyr::select(-id_munic_6, - estado_abrev)
-
-
-write_rds(bd_bf, "data/auxiliares/bd_bf.RDS")
-
+write_rds(bd_area, "data/auxiliares/bd_area.RDS")

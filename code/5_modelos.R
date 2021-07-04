@@ -17,24 +17,53 @@ bd_final <- read_rds("data/bd_final.RDS")
 # MODELOS ----------------------------------------------------------------------
 
 ##### TWFE #####
-mod1 <- felm(tx_rf_veiculo  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
-mod2 <- felm(tx_rf ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
-mod3 <- felm(tx_latrocinio  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
-mod4 <- felm(tx_homicidio_doloso  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
-mod5 <- felm(tx_lcd  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
-mod6 <- felm(tx_estupro  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod1 <- felm(tx_rf_veiculo ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod2 <- felm(tx_rf_veiculo ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
+
+mod3 <- felm(tx_rf ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod4 <- felm(tx_rf ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
+
+mod5 <- felm(tx_latrocinio  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod6 <- felm(tx_latrocinio  ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
 
 stargazer(mod1, mod2, mod3, mod4, mod5, mod6,
           type = "latex", align = FALSE, omit.stat = c("adj.rsq", "ser"), header = FALSE, no.space = TRUE,
           dep.var.labels.include = FALSE, dep.var.caption = "Tipo de ocorrência",
           covariate.labels = c("Entrada da GM"),
-          column.labels = c("RF (veículos)", "RF (outros)", "Latrocinio", "Homicídio", "LCD", "Estupro"),
-          omit = c("id_municipio", "ano"),
+          column.labels = c("RF (veículos)", "RF (outros)", "Latrocinio"),
+          column.separate = c(2, 2, 2),
+          omit = c("id_municipio", "ano", "pib_pc", "densidade"),
           add.lines = list(c("EF. Município", rep("Sim", 6)),
-                           c("EF. Ano", rep("Sim", 6))),
-          title = "Efeito da entrada da Guarda Municipal sobre diferentes tipos de ocorrências criminais - TWFE",
-          label = "twfe_did",
-          out = "output/twfe_did.tex")
+                           c("EF. Ano", rep("Sim", 6)),
+                           c("Controles", rep(c("Não", "Sim"), 3))),
+          title = "Efeito da entrada da Guarda Municipal sobre diferentes tipos de ocorrências criminais - TWFE - Parte 1",
+          notes = "PIB per capita e densidade populacional são controles.",
+          label = "twfe_did1",
+          out = "output/twfe_did1.tex")
+
+mod7 <- felm(tx_homicidio_doloso  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod8 <- felm(tx_homicidio_doloso  ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
+
+mod9 <- felm(tx_lcd  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod10 <- felm(tx_lcd  ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
+
+mod11 <- felm(tx_estupro  ~ treat | id_municipio + ano | 0 | id_municipio, bd_final)
+mod12 <- felm(tx_estupro  ~ treat + pib_pc + densidade | id_municipio + ano | 0 | id_municipio, bd_final)
+
+stargazer(mod7, mod8, mod9, mod10, mod11, mod12,
+          type = "latex", align = FALSE, omit.stat = c("adj.rsq", "ser"), header = FALSE, no.space = TRUE,
+          dep.var.labels.include = FALSE, dep.var.caption = "Tipo de ocorrência",
+          covariate.labels = c("Entrada da GM"),
+          column.labels = c("Homicídio", "LCD", "Estupro"),
+          column.separate = c(2, 2, 2),
+          omit = c("id_municipio", "ano", "pib_pc", "densidade"),
+          add.lines = list(c("EF. Município", rep("Sim", 6)),
+                           c("EF. Ano", rep("Sim", 6)),
+                           c("Controles", rep(c("Não", "Sim"), 3))),
+          title = "Efeito da entrada da Guarda Municipal sobre diferentes tipos de ocorrências criminais - TWFE - Parte 2",
+          notes = "PIB per capita e densidade populacional são controles.",
+          label = "twfe_did2",
+          out = "output/twfe_did2.tex")
 
 ##### CALLAWAY & SANT'ANNA #####
 aux <- bd_final %>%
@@ -52,6 +81,7 @@ p1 <- att_gt(yname = "tx_rf_veiculo",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -73,6 +103,7 @@ p2 <- att_gt(yname = "tx_rf",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -94,6 +125,7 @@ p3 <- att_gt(yname = "tx_latrocinio",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -115,6 +147,7 @@ p4 <- att_gt(yname = "tx_homicidio_doloso",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -136,6 +169,7 @@ p5 <- att_gt(yname = "tx_lcd",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -157,6 +191,7 @@ p6 <- att_gt(yname = "tx_estupro",
              tname = "time",
              idname = "id_municipio",
              gname = "group",
+             xformla = ~pib_pc + densidade,
              data = aux,
              control_group = "nevertreated",
              clustervars = "id_municipio") %>% 
@@ -168,7 +203,7 @@ p6 <- att_gt(yname = "tx_estupro",
        x = "Ano",
        y = "Efeito médio") + 
   scale_colour_manual(labels = c("Pré-tratamento", "Pós-tratamento"),
-                      values = c("lightsteelblue3", "navyblue")) +
+                      values = c("lightsteelblue2", "navyblue")) +
   theme_bw() + theme(legend.position = "bottom", title = element_text(size = 12),
                      legend.text = element_text(size = 14), legend.title = element_text(size = 14),
                      axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10))
@@ -177,4 +212,6 @@ p6 <- att_gt(yname = "tx_estupro",
 ggarrange(p1, p2, p3, p4, p5, p6,
           ncol = 3, nrow = 2,
           common.legend = TRUE, legend = "bottom") %>%
+  annotate_figure(bottom = text_grob("Nota: PIB per capita e densidade populacional são controles.", color = "black",
+                                     hjust = 1, x = 1, size = 11)) %>%
   ggexport(filename = "output/cs_did.pdf", width = 12, height = 8)

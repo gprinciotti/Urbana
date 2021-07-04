@@ -44,6 +44,8 @@ bd_mun <- read_csv("data/auxiliares/mun.csv") %>% # mantendo apenas municipios d
 
 bd_finbra <- read_rds("data/auxiliares/bd_finbra.RDS")
 
+bd_area <- read_rds("data/auxiliares/bd_area.RDS")
+
 # SSP --------------------------------------------------------------------------
 
 ##### Roubo e furto de veículos #####
@@ -103,6 +105,7 @@ bd_final <- inner_join(bd_ssp, bd_mun, by = "mun") %>%
   inner_join(., bd_munic_19, by = "id_municipio") %>% 
   full_join(., bd_pib, by = c("id_municipio", "ano")) %>%  
   full_join(., bd_finbra, by = c("id_municipio", "ano")) %>% 
+  inner_join(., bd_area, by = "mun") %>% 
   mutate(tx_rf_veiculo = rf_veiculo/pop*100000, # taxas de tipos de crimes por 100 mil habitantes
          tx_rf = rf/pop*100000,
          tx_homicidio_doloso = homicidio_doloso/pop*100000,
@@ -111,6 +114,7 @@ bd_final <- inner_join(bd_ssp, bd_mun, by = "mun") %>%
          tx_latrocinio = latrocinio/pop*100000,
          pib_pc = pib/pop, # pib per capita
          gastos_pol_pc = gastos_pol/pop, # gastos com policiamento per capita
+         densidade = pop/area,
          pre_treated = case_when(gm_ano < 2010 & !is.na(gm_ano) ~ 1,
                                  TRUE ~ 0), # identificando municípios que já estavam tratados no período anterior ao da amostra
          treat = case_when(ano == gm_ano ~ 1, 
@@ -122,5 +126,12 @@ bd_final <- inner_join(bd_ssp, bd_mun, by = "mun") %>%
                            TRUE ~ treat)) %>% 
   filter(ano %in% c(2010:2019) & pre_treated != 1) %>% # período definido para amostra: 2010 a 2019
   ungroup()
+
+bd_final %<>% # imputando informação de PIB per capita para 2019
+  group_by(id_municipio) %>%
+  mutate(avg_change = mean(c(NA, diff(pib_pc)), na.rm = TRUE),
+         pib_pc = case_when(ano == 2019 ~ lag(pib_pc) + avg_change,
+                            TRUE ~ pib_pc)) %>% 
+  select(-avg_change)
 
 write_rds(bd_final, "data/bd_final.RDS")
