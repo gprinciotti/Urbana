@@ -8,7 +8,7 @@ gc()
 
 # CallLibraries
 source("code/_functions/CallLibraries.R")
-packs <- c("tidyverse", "magrittr", "basedosdados", "rvest")
+packs <- c("tidyverse", "magrittr", "basedosdados", "rvest", "xlsx", "openxlsx")
 CallLibraries(packs)
 
 # BASE DOS DADOS ---------------------------------------------------------------
@@ -62,9 +62,42 @@ bd_finbra <- sp %>%
   select(id_municipio, ano, gastos_pol = valor) %>% 
   mutate_at(vars(everything()), as.numeric)
 
-write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
+#write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
 
 rm(sp)
+
+# 2010 - 2012
+finbra_2012 <- readxl::read_excel("data/auxiliares/Funcao_Consulta_2012.xlsx") %>% 
+  mutate(ano = 2012)
+finbra_2011 <- readxl::read_excel("data/auxiliares/Funcao Consulta_2011.xlsx") %>% 
+  mutate(ano = 2011) 
+finbra_2010 <- readxl::read_excel("data/auxiliares/Funcao Consulta_2010.xlsx") %>% 
+  mutate(ano = 2010)
+
+finbra_2010_2012 <- rbind(finbra_2010, finbra_2011, finbra_2012) %>% 
+  dplyr::select(CdUF, CdMun, UF, MUNICIPIO, ano, Policiamento)
+
+rm(finbra_2010, finbra_2011, finbra_2012)
+
+
+finbra_2010_2012 <- finbra_2010_2012 %>% 
+  mutate(uf_code = as.character(CdUF),
+         mun_code = as.character(CdMun),
+         id_munic_6 = as.numeric(ifelse(nchar(mun_code) == 4, paste0(uf_code, mun_code),
+                             ifelse(nchar(mun_code) == 3, paste0(uf_code, "0", mun_code),
+                                    ifelse(nchar(mun_code)== 2, paste0(uf_code, "00", mun_code), paste0(uf_code, "000", mun_code)))))) %>% 
+  left_join(muns, by = "id_munic_6") %>% 
+  mutate(id_municipio = id_munic_7,
+         gastos_pol   = Policiamento) %>% 
+  filter(gastos_pol > 1) %>% 
+  dplyr::select(id_municipio, ano, gastos_pol) 
+
+
+bd_finbra <- rbind(bd_finbra, finbra_2010_2012) 
+
+write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
+
+
 
 # Bolsa Familia ----------------------------------------------------------------
 # load("data/auxiliares/pbf_mds_04_19.RData")
