@@ -46,6 +46,13 @@ bd_finbra <- read_rds("data/auxiliares/bd_finbra.RDS")
 
 bd_area <- read_rds("data/auxiliares/bd_area.RDS")
 
+bd_bf <- read_rds("data/auxiliares/bd_bf.RDS") %>% 
+  as_tibble() %>% 
+  mutate(ano = as.numeric(year)) %>% 
+  group_by(id_municipio, ano) %>% 
+  summarise(bf_familias = mean(num_families, na.rm = TRUE)) %>% 
+  select(id_municipio, ano, bf_familias)
+
 # SSP --------------------------------------------------------------------------
 
 ##### Roubo e furto de veículos #####
@@ -99,13 +106,13 @@ bd_ssp <- inner_join(bd_ssp_rfv, bd_ssp_rf, by = c("mun", "ano")) %>% # junção
 rm(bd_ssp_rfv, bd_ssp_rf, bd_ssp_hd, bd_ssp_lcd, bd_ssp_est)
 
 # BASE FINAL -------------------------------------------------------------------
-
 bd_final <- inner_join(bd_ssp, bd_mun, by = "mun") %>%
   inner_join(., bd_pop, by = c("id_municipio", "ano")) %>% 
   inner_join(., bd_munic_19, by = "id_municipio") %>% 
   full_join(., bd_pib, by = c("id_municipio", "ano")) %>%  
   full_join(., bd_finbra, by = c("id_municipio", "ano")) %>% 
   inner_join(., bd_area, by = "mun") %>% 
+  inner_join(., bd_bf, by = c("id_municipio", "ano")) %>% 
   mutate(tx_rf_veiculo = rf_veiculo/pop*100000, # taxas de tipos de crimes por 100 mil habitantes
          tx_rf = rf/pop*100000,
          tx_homicidio_doloso = homicidio_doloso/pop*100000,

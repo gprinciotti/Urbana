@@ -79,7 +79,6 @@ finbra_2010_2012 <- rbind(finbra_2010, finbra_2011, finbra_2012) %>%
 
 rm(finbra_2010, finbra_2011, finbra_2012)
 
-
 finbra_2010_2012 <- finbra_2010_2012 %>% 
   mutate(uf_code = as.character(CdUF),
          mun_code = as.character(CdMun),
@@ -92,31 +91,28 @@ finbra_2010_2012 <- finbra_2010_2012 %>%
   filter(gastos_pol > 1) %>% 
   dplyr::select(id_municipio, ano, gastos_pol) 
 
-
 bd_finbra <- rbind(bd_finbra, finbra_2010_2012) 
 
 write_rds(bd_finbra, "data/auxiliares/bd_finbra.RDS")
 
-
-
 # Bolsa Familia ----------------------------------------------------------------
-# load("data/auxiliares/pbf_mds_04_19.RData")
-# 
-# bd_bf <- pbf %>% 
-#   filter(year >= 2010 &  mun_code >= 350000 & mun_code <= 359999) %>% 
-#   mutate_at(vars(num_families, value), as.numeric)
-# 
-# rm(pbf)
-# 
-# load("data/auxiliares/mun_codes.RData")
-# 
-# bd_bf <- bd_bf %>% 
-#   rename(id_munic_6 = mun_code) %>% 
-#   left_join(muns,by = "id_munic_6") %>% 
-#   rename(id_municipio = id_munic_7) %>% 
-#   dplyr::select(-id_munic_6, - estado_abrev)
-# 
-# write_rds(bd_bf, "data/auxiliares/bd_bf.RDS")
+load("data/auxiliares/pbf_mds_04_19.RData")
+
+bd_bf <- pbf %>%
+  filter(year >= 2010 &  mun_code >= 350000 & mun_code <= 359999) %>%
+  mutate_at(vars(num_families, value), as.numeric)
+
+rm(pbf)
+
+load("data/auxiliares/mun_codes.RData")
+
+bd_bf <- bd_bf %>%
+  rename(id_munic_6 = mun_code) %>%
+  left_join(muns,by = "id_munic_6") %>%
+  rename(id_municipio = id_munic_7) %>%
+  dplyr::select(-id_munic_6, - estado_abrev)
+
+write_rds(bd_bf, "data/auxiliares/bd_bf.RDS")
 
 # Área dos municípios ----------------------------------------------------------
 bd_area <- read_html("https://pt.wikipedia.org/wiki/Lista_de_munic%C3%ADpios_de_S%C3%A3o_Paulo_por_%C3%A1rea") %>% # fonte
