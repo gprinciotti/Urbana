@@ -82,6 +82,22 @@ for (y in seq_along(years)) {
   
 }
 
+
+
+# 2000 - 2019
+gm_2010_2019 <- gm_2010_2019 %>% 
+  filter(gm_ano >= 2000) %>% 
+  mutate(sum_gm = replace(sum_gm, gm_ano == 2000, 150))
+
+years <- c(2001:2019)
+
+for (y in seq_along(years)) {
+  
+  gm_2010_2019[gm_2010_2019$gm_ano == years[y],]$sum_gm <- gm_2010_2019[gm_2010_2019$gm_ano == (years[y]-1),]$sum_gm +  gm_2010_2019[gm_2010_2019$gm_ano == (years[y]),]$sum_gm
+  
+}
+
+
 # Plots --------------------------------------------------------------------------
 
 # plot 
@@ -97,6 +113,30 @@ ggplot() +
 # save
 ggsave(filename = "data/plots/sp_gm_2019.png", device = "png",dpi = 300)
 
+library(viridis)
+
+# plot by year
+bd_final_sf %>%
+  mutate(lg_tx_rf = log(tx_rf+1),
+         lg_tx_rf_v = log(tx_rf_veiculo+1),
+         lg_hom   = log(tx_homicidio_doloso +1),
+         lg_lesaoc = log(tx_lcd +1),
+         lg_estupro = log(tx_estupro+1)) %>% 
+  filter(ano >= 2010 & ano < 2020) %>% 
+ggplot() +
+  geom_sf(aes(fill = lg_hom), col = "NA") +
+  labs(title = ")",
+       fill = "")+
+  scale_fill_viridis(direction = -1)+
+  labs(caption = "Fonte: Elaboração própria a partir de dados da Pesquisa de Informações Básicas Municipais (IBGE)") +
+  facet_wrap(~ano)+
+  
+  map_theme
+
+# save
+ggsave(filename = "data/plots/homicidios_notitle.png", device = "png",dpi = 300)
+
+
 
 
 gm_2010_2019 %>% 
@@ -105,7 +145,7 @@ gm_2010_2019 %>%
   geom_point()+
   labs(caption = "Fonte: Elaboração própria a partir de dados da Pesquisa de Informações Básicas Municipais (IBGE)") +
   line_theme +
-  scale_x_continuous(breaks = seq(2010, 2019, 1),labels = function(x) round(x, 0)) +
+  scale_x_continuous(breaks = seq(2000, 2019, 1),labels = function(x) round(x, 0)) +
   guides(col=guide_legend(nrow=1,byrow=TRUE))  +
   theme(plot.caption = element_text(hjust = .1), #Default is hjust=1
         plot.caption.position =  "plot", 
